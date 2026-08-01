@@ -23,7 +23,7 @@ from predict import predict_image
 
 # ── App Configuration ────────────────────────────────────────
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'melon_cnn_secret_2024_xK9#mP')
+app.secret_key = os.environ.get('SECRET_KEY', 'melon_cnn_secret_2026_8hK29xLpQm')
 
 # ── Upload Config ─────────────────────────────────────────────
 UPLOAD_FOLDER  = os.path.join('static', 'uploads')
