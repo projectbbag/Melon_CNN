@@ -40,7 +40,7 @@ app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST',   'sakura.proxy.rlwy
 app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER',   'Root')
 app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'AITEvojlNYouxnvSYczPOGNiZqkRNubY')
 app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB',     'railway')
-app.config['MYSQL_PORT'] = int(os.getenv('DB_PORT', 18432))
+app.config['MYSQL_PORT'] = int(os.getenv('DB_PORT', 3306))
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
