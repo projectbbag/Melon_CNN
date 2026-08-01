@@ -36,11 +36,11 @@ app.config['MAX_CONTENT_LENGTH']  = MAX_CONTENT_LENGTH
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ── MySQL Config ──────────────────────────────────────────────
-app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST',   'cnnmelon-cnnmelon.e.aivencloud.com')
-app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER',   'avnadmin')
-app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'AVNS_YW17ZNKdPGZWiaFQ4XH')
-app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB',     'defaultdb')
-app.config['MYSQL_PORT'] = int(os.getenv('DB_PORT', 14000))
+app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST',   'mysql.railway.internal')
+app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER',   'Root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'AITEvojlNYouxnvSYczPOGNiZqkRNubY')
+app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB',     'railway')
+app.config['MYSQL_PORT'] = int(os.getenv('DB_PORT', 3306))
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
