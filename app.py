@@ -39,7 +39,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MYSQL_HOST']     = os.environ.get('MYSQL_HOST',   'cnnmelon-cnnmelon.e.aivencloud.com')
 app.config['MYSQL_USER']     = os.environ.get('MYSQL_USER',   'avnadmin')
 app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', 'AVNS_YW17ZNKdPGZWiaFQ4XH')
-app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB',     'melon_cnn')
+app.config['MYSQL_DB']       = os.environ.get('MYSQL_DB',     'defaultdb')
+app.config['MYSQL_PORT'] = int(os.getenv('DB_PORT', 14000))
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 mysql = MySQL(app)
