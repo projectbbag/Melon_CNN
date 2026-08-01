@@ -6,6 +6,11 @@
 import os
 import json
 import uuid
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+
 from datetime import datetime
 from functools import wraps
 
