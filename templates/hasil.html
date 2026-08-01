@@ -109,9 +109,9 @@
           <div class="result-recommendation {{ data.hasil_prediksi | lower | replace(' ','_') }}">
             <i class="bi bi-lightbulb-fill me-2"></i>
             {% if data.hasil_prediksi == 'Matang' %}
-              Buah melon dalam kondisi <strong>optimal</strong> untuk dikonsumsi. Segera konsumsi atau simpan di kulkas.
+              Buah melon dalam kondisi <strong>optimal</strong> untuk dipanen.
             {% elif data.hasil_prediksi == 'Setengah Matang' %}
-              Buah melon hampir siap. Simpan <strong>2-3 hari</strong> lagi pada suhu ruang agar matang sempurna.
+              Buah melon hampir siap matang <strong>2-3 hari</strong> lagi agar matang sempurna.
             {% else %}
               Buah melon masih <strong>belum siap</strong>. Butuh waktu lebih lama untuk matang sempurna.
             {% endif %}
