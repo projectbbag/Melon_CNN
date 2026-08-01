@@ -20,6 +20,12 @@
 # ============================================================
 
 import os
+
+# Hemat RAM TensorFlow
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1"
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+
 import json
 import numpy as np
 import cv2
@@ -47,6 +53,9 @@ def _load_validator():
         return
 
     import tensorflow as tf
+    
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
 
     model_path  = os.path.join(BASE_DIR, 'validator_model.h5')
     classes_path = os.path.join(BASE_DIR, 'validator_class_names.json')
@@ -82,6 +91,10 @@ def _load_classifier():
         return
 
     import tensorflow as tf
+
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+
 
     model_path   = os.path.join(BASE_DIR, 'model_melon.h5')
     classes_path = os.path.join(BASE_DIR, 'class_names.json')
