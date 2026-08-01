@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Deteksi Melon - MelonVision CNN{% endblock %}
+{% block page_title %}Deteksi Kematangan Melon{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center g-4">
+
+  <!-- Upload / Kamera Card -->
+  <div class="col-12 col-xl-7">
+    <div class="card-panel">
+      <div class="panel-header">
+        <h6 class="panel-title">
+          <i class="bi bi-camera-fill me-2 text-success"></i>Deteksi Gambar Melon
+        </h6>
+        <!-- Tab Switcher -->
+        <div class="input-tab-switcher">
+          <button class="tab-btn active" id="tabUpload" onclick="switchTab('upload')">
+            <i class="bi bi-upload me-1"></i>Upload
+          </button>
+          <button class="tab-btn" id="tabKamera" onclick="switchTab('kamera')">
+            <i class="bi bi-camera-video-fill me-1"></i>Kamera
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form method="POST" action="{{ url_for('prediksi') }}"
+              enctype="multipart/form-data" id="prediksiForm">
+
+          <!-- ── TAB UPLOAD ── -->
+          <div id="panelUpload">
+            <div class="drop-zone" id="dropZone">
+              <div class="drop-zone-icon">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+              </div>
+              <div class="drop-zone-text">
+                <strong>Seret &amp; lepas gambar di sini</strong>
+                <p>atau klik untuk memilih file</p>
+              </div>
+              <div class="drop-zone-hint">
+                <span><i class="bi bi-file-earmark-image me-1"></i>JPG, JPEG, PNG</span>
+                <span><i class="bi bi-hdd me-1"></i>Maks. 5 MB</span>
+              </div>
+              <input type="file" name="gambar" id="fileInput" accept=".jpg,.jpeg,.png">
+            </div>
+          </div>
+
+          <!-- ── TAB KAMERA ── -->
+          <div id="panelKamera" class="d-none">
+            <div class="camera-wrap" id="cameraWrap">
+              <video id="videoStream" autoplay playsinline muted></video>
+              <div class="camera-guide">
+                <div class="camera-frame"></div>
+                <span class="camera-hint">Arahkan kamera ke buah melon</span>
+              </div>
+              <div class="camera-controls">
+                <button type="button" class="btn-capture" id="btnCapture" onclick="capturePhoto()">
+                  <i class="bi bi-camera-fill"></i>
+                </button>
+                <button type="button" class="btn-cam-flip" id="btnFlip" onclick="flipCamera()" title="Ganti kamera">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+              </div>
+            </div>
+            <div id="cameraError" class="camera-error d-none">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <span id="cameraErrorMsg">Kamera tidak tersedia.</span>
+            </div>
+            <!-- Hidden canvas for capture -->
+            <canvas id="snapCanvas" class="d-none"></canvas>
+          </div>
+
+          <!-- ── PREVIEW (shared) ── -->
+          <div class="preview-area d-none" id="previewArea">
+            <div class="preview-header">
+              <span id="previewFileName" class="preview-fname"></span>
+              <button type="button" class="btn-remove-preview" onclick="removePreview()">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <div class="preview-img-wrap">
+              <img id="previewImg" src="" alt="Preview">
+            </div>
+            <div id="previewInfo" class="preview-info"></div>
+          </div>
+
+          <!-- Hidden file input for camera blob -->
+          <input type="file" name="gambar" id="hiddenFileInput" class="d-none" accept=".jpg,.jpeg,.png">
+
+          <div class="mt-4 d-flex gap-3 flex-wrap">
+            <button type="submit" class="btn-predict" id="btnPredict" disabled>
+              <i class="bi bi-cpu-fill me-2"></i>
+              Mulai Deteksi
+              <span class="spinner-border spinner-border-sm ms-2 d-none" id="predictSpinner"></span>
+            </button>
+            <button type="button" class="btn-outline-custom" onclick="removePreview()">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="col-12 col-xl-5">
+    <div class="card-panel mb-4">
+      <div class="panel-header">
+        <h6 class="panel-title"><i class="bi bi-info-circle-fill me-2 text-success"></i>Kelas Deteksi</h6>
+      </div>
+      <div class="panel-body">
+        <div class="kelas-info-card mentah-card">
+          <div class="kelas-info-dot"></div>
+          <div>
+            <div class="kelas-info-name">Mentah</div>
+            <div class="kelas-info-desc">Buah melon masih hijau, tekstur keras, belum siap konsumsi.</div>
+          </div>
+        </div>
+        <div class="kelas-info-card setengah-card">
+          <div class="kelas-info-dot"></div>
+          <div>
+            <div class="kelas-info-name">Setengah Matang</div>
+            <div class="kelas-info-desc">Warna mulai berubah, aroma sedikit tercium, hampir siap panen.</div>
+          </div>
+        </div>
+        <div class="kelas-info-card matang-card">
+          <div class="kelas-info-dot"></div>
+          <div>
+            <div class="kelas-info-name">Matang</div>
+            <div class="kelas-info-desc">Warna kuning/oranye, aroma kuat, siap dikonsumsi.</div>
+          </div>
+        </div>
+        <div class="kelas-info-card bukan-card">
+          <div class="kelas-info-dot"></div>
+          <div>
+            <div class="kelas-info-name">Validasi Objek</div>
+            <div class="kelas-info-desc">Sebelum masuk ke tahap klasifikasi kematangan, sistem memeriksa apakah gambar benar-benar buah melon.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-panel">
+      <div class="panel-header">
+        <h6 class="panel-title"><i class="bi bi-lightbulb-fill me-2 text-success"></i>Tips Foto</h6>
+      </div>
+      <div class="panel-body">
+        <ul class="tips-list">
+          <li><i class="bi bi-check2-circle text-success"></i> Pencahayaan cukup dan merata</li>
+          <li><i class="bi bi-check2-circle text-success"></i> Buah menjadi objek utama gambar</li>
+          <li><i class="bi bi-check2-circle text-success"></i> Hindari bayangan langsung di buah</li>
+          <li><i class="bi bi-check2-circle text-success"></i> Gunakan latar belakang kontras</li>
+          <li><i class="bi bi-check2-circle text-success"></i> Pastikan gambar fokus dan tajam</li>
+          <li><i class="bi bi-x-circle text-danger"></i> Jangan blur atau out-of-focus</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   TAB SWITCHER
+═══════════════════════════════════════════ */
+let activeTab = 'upload';
+let stream    = null;
+let facingMode = 'environment';  // default: kamera belakang
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('tabKamera').classList.toggle('active', tab === 'kamera');
+  document.getElementById('panelUpload').classList.toggle('d-none', tab !== 'upload');
+  document.getElementById('panelKamera').classList.toggle('d-none', tab !== 'kamera');
+  removePreview();
+  if (tab === 'kamera') {
+    startCamera();
+  } else {
+    stopCamera();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   CAMERA
+═══════════════════════════════════════════ */
+async function startCamera() {
+  const video    = document.getElementById('videoStream');
+  const errBox   = document.getElementById('cameraError');
+  const errMsg   = document.getElementById('cameraErrorMsg');
+  const cameraWrap = document.getElementById('cameraWrap');
+  errBox.classList.add('d-none');
+  cameraWrap.classList.remove('d-none');
+
+  try {
+    if (stream) stopCamera();
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    video.srcObject = stream;
+  } catch (err) {
+    cameraWrap.classList.add('d-none');
+    errBox.classList.remove('d-none');
+    if (err.name === 'NotAllowedError') {
+      errMsg.textContent = 'Izin kamera ditolak. Aktifkan izin kamera di browser Anda.';
+    } else if (err.name === 'NotFoundError') {
+      errMsg.textContent = 'Tidak ada kamera yang ditemukan pada perangkat ini.';
+    } else {
+      errMsg.textContent = 'Kamera tidak dapat diakses: ' + err.message;
+    }
+  }
+}
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+}
+
+function flipCamera() {
+  facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+  startCamera();
+}
+
+function capturePhoto() {
+  const video  = document.getElementById('videoStream');
+  const canvas = document.getElementById('snapCanvas');
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob(blob => {
+    const ts   = new Date().toISOString().replace(/[:.]/g, '-');
+    const file = new File([blob], `kamera_${ts}.jpg`, { type: 'image/jpeg' });
+    stopCamera();
+    document.getElementById('cameraWrap').classList.add('d-none');
+    showPreview(file, true);
+  }, 'image/jpeg', 0.92);
+}
+
+/* ═══════════════════════════════════════════
+   UPLOAD (drag & drop)
+═══════════════════════════════════════════ */
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files.length) showPreview(e.dataTransfer.files[0], false);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) showPreview(fileInput.files[0], false);
+});
+
+/* ═══════════════════════════════════════════
+   PREVIEW
+═══════════════════════════════════════════ */
+function showPreview(file, fromCamera) {
+  const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
+  if (!fromCamera && !allowed.includes(file.type)) {
+    alert('Format tidak didukung. Gunakan JPG, JPEG, atau PNG.'); return;
+  }
+  if (!fromCamera && file.size > 5 * 1024 * 1024) {
+    alert('File terlalu besar. Maksimal 5 MB.'); return;
+  }
+
+  // If from camera, inject blob into the hidden file input via DataTransfer
+  if (fromCamera) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('hiddenFileInput').files = dt.files;
+    // disable the upload input so server uses hidden one
+    fileInput.removeAttribute('name');
+    document.getElementById('hiddenFileInput').setAttribute('name', 'gambar');
+  } else {
+    // restore name to upload input
+    fileInput.setAttribute('name', 'gambar');
+    document.getElementById('hiddenFileInput').removeAttribute('name');
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('previewFileName').textContent = file.name;
+    document.getElementById('previewInfo').innerHTML =
+      `<i class="bi bi-${fromCamera ? 'camera' : 'hdd'} me-1"></i>${fromCamera ? 'Dari kamera' : (file.size/1024).toFixed(1)+' KB'}
+       &nbsp;|&nbsp; <i class="bi bi-file-earmark-image me-1"></i>${file.type}`;
+    dropZone.classList.add('d-none');
+    document.getElementById('cameraWrap') && document.getElementById('cameraWrap').classList.add('d-none');
+    document.getElementById('previewArea').classList.remove('d-none');
+    document.getElementById('btnPredict').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePreview() {
+  document.getElementById('previewImg').src = '';
+  fileInput.value = '';
+  document.getElementById('hiddenFileInput').value = '';
+  fileInput.setAttribute('name', 'gambar');
+  document.getElementById('hiddenFileInput').removeAttribute('name');
+  document.getElementById('previewArea').classList.add('d-none');
+  document.getElementById('btnPredict').disabled = true;
+
+  if (activeTab === 'upload') {
+    dropZone.classList.remove('d-none');
+  } else {
+    const cw = document.getElementById('cameraWrap');
+    cw && cw.classList.remove('d-none');
+    startCamera();
+  }
+}
+
+/* ═══════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════ */
+document.getElementById('prediksiForm').addEventListener('submit', () => {
+  const btn = document.getElementById('btnPredict');
+  document.getElementById('predictSpinner').classList.remove('d-none');
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sedang Memproses...';
+  btn.disabled = true;
+});
+
+// Stop camera when leaving page
+window.addEventListener('beforeunload', stopCamera);
+</script>
+{% endblock %}

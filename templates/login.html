@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Login - MelonVision CNN{% endblock %}
+
+{% block auth_content %}
+<div class="login-page">
+  <!-- Left Panel -->
+  <div class="login-left d-none d-lg-flex">
+    <div class="login-left-content">
+      <div class="melon-decoration">
+        <div class="melon-circle c1"></div>
+        <div class="melon-circle c2"></div>
+        <div class="melon-circle c3"></div>
+      </div>
+      <div class="login-brand-icon mb-4">
+        <i class="bi bi-circle-fill"></i>
+        <i class="bi bi-circle-fill op50"></i>
+        <i class="bi bi-circle-fill op25"></i>
+      </div>
+      <h1 class="login-headline">MelonVision<br><span>CNN Classifier</span></h1>
+      <p class="login-desc">
+        Sistem cerdas berbasis Convolutional Neural Network untuk mendeteksi
+        tingkat kematangan buah melon secara otomatis dari citra RGB.
+      </p>
+      <div class="login-badges">
+        <span class="badge-feat"><i class="bi bi-check2-circle me-1"></i>Akurasi Tinggi</span>
+        <span class="badge-feat"><i class="bi bi-check2-circle me-1"></i>Real-time</span>
+        <span class="badge-feat"><i class="bi bi-check2-circle me-1"></i>3 Kelas</span>
+      </div>
+      <div class="kelas-cards mt-5">
+        <div class="kelas-card mentah">
+          <div class="kelas-dot"></div>
+          <span>Mentah</span>
+        </div>
+        <div class="kelas-card setengah">
+          <div class="kelas-dot"></div>
+          <span>Setengah Matang</span>
+        </div>
+        <div class="kelas-card matang">
+          <div class="kelas-dot"></div>
+          <span>Matang</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="login-right">
+    <div class="login-form-wrapper">
+      <div class="login-logo-sm d-lg-none mb-4">
+        <span class="brand-title-sm">🍈 MelonVision</span>
+      </div>
+      <h2 class="form-title">Selamat Datang</h2>
+      <p class="form-subtitle">Masuk ke sistem deteksi kematangan melon</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }} d-flex align-items-center gap-2">
+              {% if cat == 'success' %}<i class="bi bi-check-circle-fill"></i>
+              {% elif cat == 'danger' %}<i class="bi bi-x-circle-fill"></i>
+              {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+              <span>{{ msg }}</span>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('login') }}" class="mt-4" novalidate>
+        <div class="form-floating-custom mb-4">
+          <label>Username</label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-person-fill input-icon"></i>
+            <input type="text" name="username" class="form-control-custom"
+                   placeholder="Masukkan username" required autofocus>
+          </div>
+        </div>
+
+        <div class="form-floating-custom mb-4">
+          <label>Password</label>
+          <div class="input-icon-wrap">
+            <i class="bi bi-lock-fill input-icon"></i>
+            <input type="password" name="password" id="passwordInput"
+                   class="form-control-custom" placeholder="Masukkan password" required>
+            <button type="button" class="toggle-pw" onclick="togglePassword()">
+              <i class="bi bi-eye" id="pwIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-login">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
+          Masuk ke Sistem
+        </button>
+
+        <div class="login-hint mt-4">
+          <i class="bi bi-info-circle me-1"></i>
+          Default: <strong>admin</strong> / <strong>admin123</strong>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword() {
+  const inp  = document.getElementById('passwordInput');
+  const icon = document.getElementById('pwIcon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+{% endblock %}

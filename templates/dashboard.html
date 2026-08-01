@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - MelonVision CNN{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+
+  <!-- ── Stat Cards ─────────────────────────────────────── -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card stat-green">
+        <div class="stat-icon"><i class="bi bi-images"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ total_data }}</div>
+          <div class="stat-label">Total Gambar Upload</div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card stat-teal">
+        <div class="stat-icon"><i class="bi bi-cpu-fill"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">{{ total_prediksi }}</div>
+          <div class="stat-label">Total Prediksi</div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card stat-lime">
+        <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Kelas Kematangan</div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="stat-card stat-emerald">
+        <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="stat-body">
+          <div class="stat-value">CNN</div>
+          <div class="stat-label">Model Architecture</div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Charts Row ─────────────────────────────────────── -->
+  <div class="row g-4 mb-4">
+
+    <div class="col-12 col-lg-7">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6 class="panel-title"><i class="bi bi-bar-chart-fill me-2 text-success"></i>Distribusi Prediksi</h6>
+          <span class="panel-badge">{{ total_prediksi }} total</span>
+        </div>
+        <div class="panel-body">
+          <canvas id="barChart" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6 class="panel-title"><i class="bi bi-pie-chart-fill me-2 text-success"></i>Proporsi Kelas</h6>
+        </div>
+        <div class="panel-body d-flex align-items-center justify-content-center">
+          <div style="max-width:280px;width:100%">
+            <canvas id="donutChart" height="260"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Recent Predictions ─────────────────────────────── -->
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h6 class="panel-title"><i class="bi bi-clock-history me-2 text-success"></i>Prediksi Terbaru</h6>
+          <a href="{{ url_for('history') }}" class="btn-link">Lihat Semua <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="panel-body p-0">
+          {% if recent %}
+          <div class="table-responsive">
+            <table class="table-custom">
+              <thead>
+                <tr>
+                  <th>Gambar</th>
+                  <th>Nama File</th>
+                  <th>Hasil Prediksi</th>
+                  <th>Confidence</th>
+                  <th>Tanggal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in recent %}
+                <tr>
+                  <td>
+                    <img src="{{ url_for('static', filename='uploads/' + r.gambar) }}"
+                         class="thumb-img" alt="{{ r.nama_file }}">
+                  </td>
+                  <td><span class="file-name">{{ r.nama_file }}</span></td>
+                  <td>
+                    <span class="badge-kelas {{ r.hasil_prediksi | lower | replace(' ','_') }}">
+                      {{ r.hasil_prediksi }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="confidence-bar-wrap">
+                      <div class="confidence-bar" style="width:{{ r.confidence }}%"></div>
+                      <span>{{ r.confidence }}%</span>
+                    </div>
+                  </td>
+                  <td class="date-cell">{{ r.tanggal.strftime('%d %b %Y %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state py-5">
+            <i class="bi bi-camera-fill"></i>
+            <p>Belum ada prediksi. <a href="{{ url_for('prediksi') }}">Mulai deteksi sekarang →</a></p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const labels = {{ chart_labels | safe }};
+const values = {{ chart_values | safe }};
+
+// Warna dinamis berdasarkan nama kelas
+function getColorForClass(name) {
+  const n = (name || '').toLowerCase().replace(/\s/g,'_');
+  const map = {
+    'mentah':          '#f59e0b',
+    'setengah_matang': '#22c55e',
+    'matang':          '#10b981',
+    'bukan_melon':     '#8b5cf6',
+  };
+  return map[n] || '#94a3b8';
+}
+
+const COLORS    = labels.length ? labels.map(getColorForClass) : ['#f59e0b','#22c55e','#10b981'];
+const BG_COLORS = COLORS.map(c => c + '26');
+
+// Bar Chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+  type: 'bar',
+  data: {
+    labels: labels.length ? labels : ['Mentah','Setengah Matang','Matang'],
+    datasets: [{
+      label: 'Jumlah Prediksi',
+      data: values.length ? values : [0,0,0],
+      backgroundColor: COLORS,
+      borderColor: COLORS,
+      borderWidth: 2,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Donut Chart
+const donutCtx = document.getElementById('donutChart').getContext('2d');
+new Chart(donutCtx, {
+  type: 'doughnut',
+  data: {
+    labels: labels.length ? labels : ['Mentah','Setengah Matang','Matang'],
+    datasets: [{
+      data: values.length ? values : [1,1,1],
+      backgroundColor: COLORS,
+      borderColor: '#fff',
+      borderWidth: 3,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+    },
+    cutout: '65%',
+  }
+});
+</script>
+{% endblock %}

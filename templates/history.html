@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Riwayat Prediksi - MelonVision CNN{% endblock %}
+{% block page_title %}Riwayat Prediksi{% endblock %}
+
+{% block content %}
+<div class="card-panel">
+  <div class="panel-header flex-wrap gap-2">
+    <h6 class="panel-title mb-0">
+      <i class="bi bi-clock-history me-2 text-success"></i>
+      Semua Riwayat Prediksi
+      <span class="panel-badge ms-2">{{ total }} data</span>
+    </h6>
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('history') }}" class="search-form">
+      <div class="search-wrap">
+        <i class="bi bi-search search-icon"></i>
+        <input type="text" name="search" value="{{ search }}"
+               placeholder="Cari nama file atau kelas..."
+               class="search-input">
+        {% if search %}
+        <a href="{{ url_for('history') }}" class="search-clear">
+          <i class="bi bi-x-circle-fill"></i>
+        </a>
+        {% endif %}
+        <button type="submit" class="search-btn">Cari</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel-body p-0">
+    {% if rows %}
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th width="50">#</th>
+            <th width="80">Gambar</th>
+            <th>Nama File</th>
+            <th>Hasil Prediksi</th>
+            <th>Confidence</th>
+            <th>Tanggal</th>
+            <th width="120">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td class="text-muted">{{ loop.index + (page - 1) * 10 }}</td>
+            <td>
+              <a href="{{ url_for('hasil', id=row.id_hasil) }}">
+                <img src="{{ url_for('static', filename='uploads/' + row.gambar) }}"
+                     class="thumb-img" alt="{{ row.nama_file }}"
+                     onerror="this.src='https://placehold.co/50x50/e2e8f0/94a3b8?text=?'">
+              </a>
+            </td>
+            <td>
+              <span class="file-name" title="{{ row.nama_file }}">{{ row.nama_file }}</span>
+            </td>
+            <td>
+              <span class="badge-kelas {{ row.hasil_prediksi | lower | replace(' ','_') }}">
+                {{ row.hasil_prediksi }}
+              </span>
+            </td>
+            <td>
+              <div class="confidence-bar-wrap">
+                <div class="confidence-bar" style="width:{{ row.confidence }}%"></div>
+                <span>{{ row.confidence }}%</span>
+              </div>
+            </td>
+            <td class="date-cell">{{ row.tanggal.strftime('%d %b %Y') }}<br>
+              <small class="text-muted">{{ row.tanggal.strftime('%H:%M') }}</small>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('hasil', id=row.id_hasil) }}"
+                   class="btn-icon btn-icon-view" title="Detail">
+                  <i class="bi bi-eye-fill"></i>
+                </a>
+                <form method="POST"
+                      action="{{ url_for('delete_history', id=row.id_hasil) }}"
+                      onsubmit="return confirm('Hapus data ini?')">
+                  <button type="submit" class="btn-icon btn-icon-del" title="Hapus">
+                    <i class="bi bi-trash3-fill"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination-wrap">
+      <span class="pagination-info">
+        Halaman {{ page }} dari {{ total_pages }}
+      </span>
+      <div class="pagination-btns">
+        {% if page > 1 %}
+        <a href="{{ url_for('history', page=1, search=search) }}" class="pg-btn">
+          <i class="bi bi-chevron-double-left"></i>
+        </a>
+        <a href="{{ url_for('history', page=page-1, search=search) }}" class="pg-btn">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+        {% endif %}
+
+        {% for p in range([1, page-2]|max, [total_pages+1, page+3]|min) %}
+        <a href="{{ url_for('history', page=p, search=search) }}"
+           class="pg-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+        {% endfor %}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('history', page=page+1, search=search) }}" class="pg-btn">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+        <a href="{{ url_for('history', page=total_pages, search=search) }}" class="pg-btn">
+          <i class="bi bi-chevron-double-right"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state py-5">
+      <i class="bi bi-inbox"></i>
+      {% if search %}
+        <p>Tidak ada hasil untuk pencarian "<strong>{{ search }}</strong>".</p>
+        <a href="{{ url_for('history') }}" class="btn-outline-custom mt-2">Tampilkan Semua</a>
+      {% else %}
+        <p>Belum ada riwayat prediksi.</p>
+        <a href="{{ url_for('prediksi') }}" class="btn-predict mt-2">
+          <i class="bi bi-camera-fill me-2"></i>Mulai Deteksi
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

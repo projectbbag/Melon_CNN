@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Manajemen User - MelonVision CNN{% endblock %}
+{% block page_title %}Manajemen User{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+
+  <!-- User Table -->
+  <div class="col-12 col-xl-8">
+    <div class="card-panel">
+      <div class="panel-header">
+        <h6 class="panel-title">
+          <i class="bi bi-people-fill me-2 text-success"></i>
+          Daftar User
+          <span class="panel-badge ms-2">{{ users | length }} user</span>
+        </h6>
+        <button class="btn-predict btn-sm-predict" data-bs-toggle="modal" data-bs-target="#addUserModal">
+          <i class="bi bi-person-plus-fill me-1"></i> Tambah User
+        </button>
+      </div>
+      <div class="panel-body p-0">
+        <div class="table-responsive">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nama Lengkap</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in users %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="user-mini-avatar">{{ u.nama[:1].upper() }}</div>
+                    <span>{{ u.nama }}</span>
+                    {% if u.id_user == session.user_id %}
+                      <span class="badge bg-success bg-opacity-10 text-success" style="font-size:10px">Anda</span>
+                    {% endif %}
+                  </div>
+                </td>
+                <td><code class="username-code">{{ u.username }}</code></td>
+                <td>
+                  <span class="role-badge {{ u.role }}">{{ u.role }}</span>
+                </td>
+                <td class="date-cell">{{ u.created_at.strftime('%d %b %Y') }}</td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <button class="btn-icon btn-icon-view"
+                            onclick="openEditModal({{ u.id_user }}, '{{ u.nama }}', '{{ u.username }}', '{{ u.role }}')"
+                            title="Edit">
+                      <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    {% if u.id_user != session.user_id %}
+                    <form method="POST" action="{{ url_for('hapus_user', id=u.id_user) }}"
+                          onsubmit="return confirm('Hapus user {{ u.username }}?')">
+                      <button type="submit" class="btn-icon btn-icon-del" title="Hapus">
+                        <i class="bi bi-trash3-fill"></i>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="col-12 col-xl-4">
+    <div class="card-panel">
+      <div class="panel-header">
+        <h6 class="panel-title"><i class="bi bi-shield-lock-fill me-2 text-success"></i>Hak Akses</h6>
+      </div>
+      <div class="panel-body">
+        <div class="role-info-card">
+          <span class="role-badge admin mb-2 d-inline-block">admin</span>
+          <ul class="role-perms">
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Semua fitur</li>
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Manajemen user</li>
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Hapus riwayat</li>
+          </ul>
+        </div>
+        <div class="role-info-card mt-3">
+          <span class="role-badge user mb-2 d-inline-block">user</span>
+          <ul class="role-perms">
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Dashboard</li>
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Prediksi gambar</li>
+            <li><i class="bi bi-check-circle-fill text-success me-1"></i>Riwayat prediksi</li>
+            <li><i class="bi bi-x-circle-fill text-danger me-1"></i>Manajemen user</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-custom">
+      <div class="modal-header-custom">
+        <h5><i class="bi bi-person-plus-fill me-2"></i>Tambah User Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('tambah_user') }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label-custom">Nama Lengkap</label>
+            <input type="text" name="nama" class="form-control-custom" required placeholder="Nama lengkap">
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Username</label>
+            <input type="text" name="username" class="form-control-custom" required placeholder="Username unik">
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Password</label>
+            <input type="password" name="password" class="form-control-custom" required placeholder="Min. 6 karakter" minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Role</label>
+            <select name="role" class="form-control-custom">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn-predict">
+            <i class="bi bi-person-plus-fill me-1"></i>Simpan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-custom">
+      <div class="modal-header-custom">
+        <h5><i class="bi bi-pencil-fill me-2"></i>Edit User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="editForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label-custom">Nama Lengkap</label>
+            <input type="text" name="nama" id="editNama" class="form-control-custom" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Username</label>
+            <input type="text" id="editUsername" class="form-control-custom" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Password Baru <small class="text-muted">(kosongkan jika tidak diubah)</small></label>
+            <input type="password" name="password" class="form-control-custom" placeholder="Password baru...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Role</label>
+            <select name="role" id="editRole" class="form-control-custom">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-outline-custom" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn-predict">
+            <i class="bi bi-check-lg me-1"></i>Perbarui
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openEditModal(id, nama, username, role) {
+  document.getElementById('editForm').action = `/users/edit/${id}`;
+  document.getElementById('editNama').value = nama;
+  document.getElementById('editUsername').value = username;
+  document.getElementById('editRole').value = role;
+  new bootstrap.Modal(document.getElementById('editUserModal')).show();
+}
+</script>
+{% endblock %}

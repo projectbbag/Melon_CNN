@@ -1,0 +1,7 @@
+{
+  "architecture": "MobileNetV2",
+  "type": "classifier",
+  "classes": 3,
+  "preprocessing": "mobilenet_v2",
+  "img_size": 224
+}

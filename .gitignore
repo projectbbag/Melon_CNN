@@ -1,0 +1,35 @@
+# Virtual Environment
+venv/
+
+# Dataset
+dataset/
+dataset_validator/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Training output
+accuracy_plot.png
+loss_plot.png
+confusion_matrix.png
+classification_report.txt
+model2_accuracy_plot.png
+model2_loss_plot.png
+model2_confusion_matrix.png
+model2_classification_report.txt
+validator_accuracy_plot.png
+validator_loss_plot.png
+validator_confusion_matrix.png
+validator_classification_report.txt
+
+# OS
+Thumbs.db
+.DS_Store

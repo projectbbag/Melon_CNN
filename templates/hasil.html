@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Hasil Deteksi - MelonVision CNN{% endblock %}
+{% block page_title %}Hasil Deteksi{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center g-4">
+
+  <!-- Low Confidence Warning -->
+  {% if low_conf %}
+  <div class="col-12 col-xl-10">
+    <div class="confidence-warning">
+      <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+      <div>
+        <strong>Peringatan: Confidence rendah ({{ data.confidence }}%)</strong><br>
+        Sistem tidak cukup yakin dengan hasil ini. Kemungkinan gambar yang diunggah
+        <strong>bukan buah melon</strong> atau kualitas foto kurang baik.
+        Coba ambil foto ulang dengan pencahayaan lebih baik dan pastikan buah melon
+        terlihat jelas sebagai objek utama.
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Result Hero -->
+  <div class="col-12 col-xl-10">
+    <div class="result-hero {{ data.hasil_prediksi | lower | replace(' ','_') }}">
+      <div class="result-hero-badge">
+        <i class="bi bi-cpu-fill me-2"></i>Hasil Analisis CNN
+      </div>
+      <div class="result-hero-body row align-items-center g-4">
+
+        <!-- Image -->
+        <div class="col-12 col-md-5 text-center">
+          <div class="result-img-frame">
+            <img src="{{ url_for('static', filename='uploads/' + data.gambar) }}"
+                 alt="{{ data.nama_file }}" class="result-img" id="resultImg">
+            <div class="result-img-badge {{ data.hasil_prediksi | lower | replace(' ','_') }}">
+              {{ data.hasil_prediksi }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="col-12 col-md-7">
+          <div class="result-label-wrapper">
+            <div class="result-kelas-label">Tingkat Kematangan</div>
+            <div class="result-kelas-value {{ data.hasil_prediksi | lower | replace(' ','_') }}">
+              {% if data.hasil_prediksi == 'Matang' %}
+                <i class="bi bi-patch-check-fill me-2"></i>
+              {% elif data.hasil_prediksi == 'Setengah Matang' %}
+                <i class="bi bi-hourglass-split me-2"></i>
+              {% else %}
+                <i class="bi bi-circle me-2"></i>
+              {% endif %}
+              {{ data.hasil_prediksi }}
+            </div>
+          </div>
+
+          <div class="result-confidence-wrap">
+            <div class="result-conf-label">
+              Confidence Score
+              <span class="result-conf-value">{{ data.confidence }}%</span>
+            </div>
+            <div class="result-conf-bar-bg">
+              <div class="result-conf-bar {{ data.hasil_prediksi | lower | replace(' ','_') }}"
+                   style="width: {{ data.confidence }}%"
+                   data-width="{{ data.confidence }}%">
+              </div>
+            </div>
+            <div class="result-conf-desc">
+              {% if data.confidence >= 90 %}
+                <i class="bi bi-shield-fill-check text-success me-1"></i>
+                Sangat yakin — akurasi sangat tinggi
+              {% elif data.confidence >= 75 %}
+                <i class="bi bi-shield-fill text-warning me-1"></i>
+                Cukup yakin — akurasi baik
+              {% else %}
+                <i class="bi bi-shield-exclamation text-danger me-1"></i>
+                Kurang yakin — coba foto dengan pencahayaan lebih baik
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="result-meta-grid">
+            <div class="result-meta-item">
+              <i class="bi bi-file-earmark-image"></i>
+              <div>
+                <div class="meta-label">Nama File</div>
+                <div class="meta-value">{{ data.nama_file }}</div>
+              </div>
+            </div>
+            <div class="result-meta-item">
+              <i class="bi bi-calendar3"></i>
+              <div>
+                <div class="meta-label">Tanggal Prediksi</div>
+                <div class="meta-value">{{ data.tanggal.strftime('%d %B %Y, %H:%M') }}</div>
+              </div>
+            </div>
+            <div class="result-meta-item">
+              <i class="bi bi-hash"></i>
+              <div>
+                <div class="meta-label">ID Prediksi</div>
+                <div class="meta-value">#{{ '%06d' % data.id_hasil }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommendation -->
+          <div class="result-recommendation {{ data.hasil_prediksi | lower | replace(' ','_') }}">
+            <i class="bi bi-lightbulb-fill me-2"></i>
+            {% if data.hasil_prediksi == 'Matang' %}
+              Buah melon dalam kondisi <strong>optimal</strong> untuk dikonsumsi. Segera konsumsi atau simpan di kulkas.
+            {% elif data.hasil_prediksi == 'Setengah Matang' %}
+              Buah melon hampir siap. Simpan <strong>2-3 hari</strong> lagi pada suhu ruang agar matang sempurna.
+            {% else %}
+              Buah melon masih <strong>belum siap</strong>. Butuh waktu lebih lama untuk matang sempurna.
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="col-12 col-xl-10">
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a href="{{ url_for('prediksi') }}" class="btn-predict">
+        <i class="bi bi-camera-fill me-2"></i>Deteksi Gambar Baru
+      </a>
+      <a href="{{ url_for('history') }}" class="btn-outline-custom">
+        <i class="bi bi-clock-history me-2"></i>Lihat Riwayat
+      </a>
+      <a href="{{ url_for('dashboard') }}" class="btn-outline-custom">
+        <i class="bi bi-grid-1x2 me-2"></i>Dashboard
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Animate confidence bar
+window.addEventListener('load', () => {
+  const bar = document.querySelector('.result-conf-bar');
+  if (bar) {
+    const target = bar.getAttribute('data-width');
+    bar.style.width = '0%';
+    setTimeout(() => {
+      bar.style.transition = 'width 1.2s cubic-bezier(0.4,0,0.2,1)';
+      bar.style.width = target;
+    }, 300);
+  }
+});
+</script>
+{% endblock %}
